@@ -7,41 +7,32 @@ type Theme = 'light' | 'dark';
 interface ThemeContextType {
   theme: Theme;
   toggleTheme: () => void;
+  mounted: boolean;
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  // Use a function for the initial state to avoid hydration mismatch
-  const [theme, setTheme] = useState<Theme>(() => {
-    // This code only runs on the client
-    if (typeof window !== 'undefined') {
-      const storedTheme = localStorage.getItem('theme') as Theme | null;
-      if (storedTheme) {
-        return storedTheme;
-      }
-      if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-        return 'dark';
-      }
-    }
-    return 'light';
-  });
+  const [mounted, setMounted] = useState(false);
+  const [theme, setTheme] = useState<Theme>('light');
 
-  // Initialize theme from localStorage or system preference
+  // Initialize theme after component mounts to avoid hydration mismatch
   useEffect(() => {
-    // This effect ensures the theme is correctly set after hydration
+    setMounted(true);
+    
     const storedTheme = localStorage.getItem('theme') as Theme | null;
     
     if (storedTheme) {
       setTheme(storedTheme);
     } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-      // If no stored preference, use system preference
       setTheme('dark');
     }
   }, []);
 
   // Update the HTML class when theme changes
   useEffect(() => {
+    if (!mounted) return;
+    
     const root = window.document.documentElement;
     
     if (theme === 'dark') {
@@ -52,7 +43,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     
     // Save the theme preference to localStorage
     localStorage.setItem('theme', theme);
-  }, [theme]);
+  }, [theme, mounted]);
 
   const toggleTheme = () => {
     setTheme(prevTheme => (prevTheme === 'light' ? 'dark' : 'light'));
@@ -61,6 +52,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const value = {
     theme,
     toggleTheme,
+    mounted,
   };
 
   return (

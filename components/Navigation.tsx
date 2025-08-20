@@ -12,7 +12,7 @@ const Navigation = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const pathname = usePathname();
-  const { theme, toggleTheme } = useTheme();
+  const { theme, toggleTheme, mounted } = useTheme();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -75,7 +75,11 @@ const Navigation = () => {
               className="p-2 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors duration-200"
               aria-label="Toggle theme"
             >
-              {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+              {mounted ? (
+                theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />
+              ) : (
+                <div className="w-5 h-5" />
+              )}
             </button>
           </div>
 
@@ -118,15 +122,22 @@ const Navigation = () => {
                 onClick={toggleTheme}
                 className="flex items-center space-x-2 w-full px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200"
               >
-                {theme === 'dark' ? (
-                  <>
-                    <Sun className="w-5 h-5" />
-                    <span>Light Mode</span>
-                  </>
+                {mounted ? (
+                  theme === 'dark' ? (
+                    <>
+                      <Sun className="w-5 h-5" />
+                      <span>Light Mode</span>
+                    </>
+                  ) : (
+                    <>
+                      <Moon className="w-5 h-5" />
+                      <span>Dark Mode</span>
+                    </>
+                  )
                 ) : (
                   <>
-                    <Moon className="w-5 h-5" />
-                    <span>Dark Mode</span>
+                    <div className="w-5 h-5" />
+                    <span>Theme</span>
                   </>
                 )}
               </button>
@@ -138,4 +149,4 @@ const Navigation = () => {
   );
 };
 
-export default Navigation; 
+export default Navigation;
