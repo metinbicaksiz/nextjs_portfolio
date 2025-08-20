@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { saveContact, deleteContact } from '@/lib/database';
+import nodemailer from 'nodemailer';
+// import { Resend } from 'resend';
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
-    const { name, email, phone, message } = body;
+      const { name, email, phone, message }  = await request.json();
 
     // Validate required fields
     if (!name || !email || !message) {
@@ -23,6 +24,36 @@ export async function POST(request: NextRequest) {
       );
     }
 
+      const transponder = nodemailer.createTransport({
+          service: 'gmail',
+          host: process.env.EMAIL_HOST,
+          port: 587,
+          secure: true,
+          auth: {
+              user: process.env.EMAIL_USER,
+              pass: process.env.EMAIL_PASS,
+          }
+      })
+
+      const mailOption = {
+          from: process.env.EMAIL_USER,
+          to: email,
+          subject: name,
+          html: `Message:${message} </br> Telephone:${phone}`,
+      }
+
+      await transponder.sendMail(mailOption);
+
+    // Settings for RESEND library
+
+    // const resend = new Resend(process.env.RESEND_API_KEY);
+    //
+    // await resend.emails.send({
+    //     from: 'onboarding@resend.dev',
+    //     to: 'metinbicaksiz@gmail.com',
+    //     subject: name,
+    //     html: message,
+    // })
     // Save contact form submission to database
     const result = await saveContact({
       name,
@@ -31,21 +62,17 @@ export async function POST(request: NextRequest) {
       message
     });
 
-    if (!result) {
-      throw new Error('Failed to save contact form submission');
-    }
+      if (!result) {
+          throw new Error('Failed to save contact form submission');
+      }
 
     // Log the successful submission
-    console.log('Contact form submission saved:', {
-      name,
-      email,
-      phone: phone || 'Not provided',
-      timestamp: new Date().toISOString()
-    });
-
-    // You can also integrate with services like:
-    // - SendGrid for email notifications
-    // - CRM systems like HubSpot or Salesforce
+    // console.log('Contact form submission saved:', {
+    //   name,
+    //   email,
+    //   phone: phone || 'Not provided',
+    //   timestamp: new Date().toISOString()
+    // });
 
     return NextResponse.json(
       { message: 'Message sent successfully!' },
