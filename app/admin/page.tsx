@@ -33,8 +33,8 @@ export default async function AdminDashboard() {
       {
           title: 'Messages',
           value: contacts.length,
-          icon: MessageSquare,
-          color: 'bg-pink-500',
+          icon: FileText,
+          color: 'bg-blue-500',
           href: '/admin/messages'
       },
     {

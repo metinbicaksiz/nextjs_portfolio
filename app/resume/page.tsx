@@ -14,8 +14,7 @@ const experiences = [
           <li>Teaching Career Studies to grade 9 students</li>
           <li>Teaching Digital literacy and visual programming to grade 6 and 7</li>
           <li>Teaching Digital literacy and basic Web development to grade 8</li>
-          <li>Teaching Computer studies classes to grade 10 and grade 11 according to BC curriculum along with teaching</li>
-          <li>them basic level of C language, data types, algorithms and Python.</li>
+          <li>Teaching Computer studies classes to grade 10 and grade 11 according to BC curriculum along with teaching them basic level of C language, data types, algorithms and Python.</li>
         </ul>,
     technologies: ['Python', 'C', 'Scratch']
   },

@@ -1,4 +1,5 @@
 'use client';
+import { saveContact } from '@/lib/database';
 
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';

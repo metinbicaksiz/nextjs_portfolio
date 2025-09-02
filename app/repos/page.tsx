@@ -1,16 +1,17 @@
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
 import RepositoryCard from '@/components/RepositoryCard';
-import { getAllRepositories } from '@/lib/database';
+import { createClient } from '@/utils/supabase/server';
 
 export default async function ReposPage() {
-  const repositories = await getAllRepositories();
+    const supabase = await createClient();
+    const { data: repositories }: any = await supabase.from("repositories").select();
 
   return (
     <>
       <main className="min-h-screen bg-gray-50 dark:bg-gray-900">
         <Navigation />
-        
+
         <div className="pt-20 pb-16">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             {/* Header */}
@@ -19,15 +20,15 @@ export default async function ReposPage() {
                 My <span className="text-gradient">Projects</span>
               </h1>
               <p className="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
-                Here are some of the projects I've worked on. Each one represents a unique challenge 
+                Here are some of the projects I've worked on. Each one represents a unique challenge
                 and learning experience in my journey as a developer.
               </p>
             </div>
 
             {/* Repositories Grid */}
-            {repositories.length > 0 ? (
+            {repositories?.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {repositories.map((repo) => (
+                {repositories.map((repo: any) => (
                   <RepositoryCard
                     key={repo.id}
                     title={repo.title}
@@ -35,7 +36,7 @@ export default async function ReposPage() {
                     githubUrl={repo.github_url}
                     demoUrl={repo.demo_url}
                     thumbnail={repo.thumbnail}
-                    technologies={repo.technologies.split(',').map(tech => tech.trim())}
+                    technologies={repo.technologies.split(',').map((tech: string) => tech.trim())}
                     featured={repo.featured}
                   />
                 ))}
@@ -57,4 +58,4 @@ export default async function ReposPage() {
       <Footer />
     </>
   );
-} 
+}

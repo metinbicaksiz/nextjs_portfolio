@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { updateBlogPost, deleteBlogPost, BlogPost } from '@/lib/database';
 
+
 // PUT /api/admin/blog/[id] - Update a blog post
 export async function PUT(
   request: NextRequest,

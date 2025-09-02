@@ -1,14 +1,16 @@
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
-import { getAllBlogPosts } from '@/lib/database';
 import Link from 'next/link';
 import { Calendar, Clock, ArrowRight } from 'lucide-react';
 import { format } from 'date-fns';
+import { createClient } from '@/utils/supabase/server';
 
 export default async function BlogPage() {
-  const blogPosts = await getAllBlogPosts();
+    const supabase = await createClient();
+    const { data: blogPosts }: any = await supabase.from('blog_post').select()
 
-  return (
+    console.log(blogPosts);
+    return (
     <>
       <main className="min-h-screen bg-gray-50 dark:bg-gray-900">
         <Navigation />
@@ -26,9 +28,9 @@ export default async function BlogPage() {
             </div>
 
             {/* Blog Posts Grid */}
-            {blogPosts.length > 0 ? (
+            {blogPosts?.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {blogPosts.map((post) => (
+                {blogPosts?.map((post: any) => (
                   <article key={post.id} className="card hover:shadow-xl transition-shadow duration-300">
                     {/* Featured Image */}
                     {post.featured_image && (
