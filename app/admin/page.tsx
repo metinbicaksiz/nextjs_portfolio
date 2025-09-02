@@ -10,6 +10,11 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 
+// Ensure this page is always rendered dynamically
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+export const fetchCache = 'force-no-store';
+
 export default async function AdminDashboard() {
   const blogPosts = await getAllBlogPosts();
   const repositories = await getAllRepositories();

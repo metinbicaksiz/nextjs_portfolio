@@ -3,6 +3,11 @@ import { MessageSquare, Mail, Phone, Calendar, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import DeleteMessageButton from '@/components/DeleteMessageButton';
 
+// Ensure this page is always rendered dynamically
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+export const fetchCache = 'force-no-store';
+
 export default async function MessagesPage() {
   const contacts = await getAllContacts();
 

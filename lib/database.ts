@@ -1,5 +1,6 @@
 // import { createClient } from '@supabase/supabase-js'
 import { createClient } from '@/utils/supabase/server';
+import { createServiceClient } from '@/utils/supabase/service';
 
 // Blog post types
 export interface BlogPost {
@@ -38,9 +39,21 @@ export interface Contact {
   created_at?: Date;
 }
 
+// Helper function to get appropriate client
+// For read-only operations during build time, use service client to avoid cookies
+async function getClient() {
+  try {
+    // Check if we're in a build context or if cookies are unavailable
+    return await createClient();
+  } catch (error) {
+    // Fallback to service client for build-time operations
+    return createServiceClient();
+  }
+}
+
 // Blog functions
 export async function getAllBlogPosts(): Promise<BlogPost[]> {
-    const supabase = await createClient();
+    const supabase = await getClient();
     try {
     const { data:posts, error } = await supabase
       .from('blog_post')
@@ -125,7 +138,7 @@ export async function deleteBlogPost(id: number): Promise<boolean> {
 // Repository functions
 export async function getAllRepositories(): Promise<Repository[]> {
   try {
-      const supabase = await createClient();
+      const supabase = await getClient();
 
       const { data, error } = await supabase
       .from('repositories')
@@ -216,7 +229,7 @@ export async function saveContact(contact: Contact): Promise<boolean> {
 
 export async function getAllContacts(): Promise<Contact[]> {
   try {
-      const supabase = await createClient();
+      const supabase = await getClient();
       const { data, error } = await supabase
       .from('contact')
       .select('*')
