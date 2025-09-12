@@ -5,7 +5,6 @@ import { useRouter, useParams } from 'next/navigation';
 import { ArrowLeft, Save } from 'lucide-react';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
-
 interface BlogPost {
   id: number;
   title: string;
@@ -35,24 +34,21 @@ export default function EditBlogPost() {
   useEffect(() => {
     const fetchPost = async () => {
       try {
-        const response = await fetch('/api/admin/blog');
+        const response = await fetch(`/api/admin/blog/${params.id}`);
         if (response.ok) {
-          const posts: BlogPost[] = await response.json();
-          const post = posts.find(p => p.id === parseInt(params.id as string));
+          const post: BlogPost = await response.json();
           
-          if (post) {
-            setFormData({
-              title: post.title,
-              excerpt: post.excerpt,
-              content: post.content,
-              slug: post.slug,
-              featured_image: post.featured_image || '',
-              published: post.published
-            });
-          } else {
-            toast.error('Blog post not found');
-            router.push('/admin/blog');
-          }
+          setFormData({
+            title: post.title,
+            excerpt: post.excerpt,
+            content: post.content,
+            slug: post.slug,
+            featured_image: post.featured_image || '',
+            published: post.published
+          });
+        } else if (response.status === 404) {
+          toast.error('Blog post not found');
+          router.push('/admin/blog');
         } else {
           toast.error('Failed to fetch blog post');
           router.push('/admin/blog');

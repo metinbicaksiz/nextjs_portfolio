@@ -1,5 +1,38 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { updateRepository, deleteRepository, Repository } from '@/lib/database';
+import { getRepositoryById, updateRepository, deleteRepository, Repository } from '@/lib/database';
+
+// GET /api/admin/repos/[id] - Get a specific repository by ID
+export async function GET(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const id = parseInt(params.id);
+    if (isNaN(id)) {
+      return NextResponse.json(
+        { error: 'Invalid repository ID' },
+        { status: 400 }
+      );
+    }
+
+    const repo = await getRepositoryById(id);
+    
+    if (!repo) {
+      return NextResponse.json(
+        { error: 'Repository not found' },
+        { status: 404 }
+      );
+    }
+
+    return NextResponse.json(repo);
+  } catch (error) {
+    console.error('Error fetching repository:', error);
+    return NextResponse.json(
+      { error: 'Failed to fetch repository' },
+      { status: 500 }
+    );
+  }
+}
 
 // PUT /api/admin/repos/[id] - Update a repository
 export async function PUT(

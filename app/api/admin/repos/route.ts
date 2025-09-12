@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getAllRepositories, createRepository, Repository } from '@/lib/database';
+import { getAllRepositoriesForAdmin, createRepository, Repository } from '@/lib/database';
 
 // GET /api/admin/repos - Get all repositories
 export async function GET() {
   try {
-    const repos = await getAllRepositories();
+    const repos = await getAllRepositoriesForAdmin();
     return NextResponse.json(repos);
   } catch (error) {
     console.error('Error fetching repositories:', error);

@@ -9,7 +9,6 @@ export default async function BlogPage() {
     const supabase = await createClient();
     const { data: blogPosts }: any = await supabase.from('blog_post').select()
 
-    console.log(blogPosts);
     return (
     <>
       <main className="min-h-screen bg-gray-50 dark:bg-gray-900">

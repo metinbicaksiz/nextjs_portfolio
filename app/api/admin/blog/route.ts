@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getAllBlogPosts, createBlogPost, BlogPost } from '@/lib/database';
+import { getAllBlogPostsForAdmin, createBlogPost, BlogPost } from '@/lib/database';
 
-// GET /api/admin/blog - Get all blog posts
+// GET /api/admin/blog - Get all blog posts (including unpublished for admin)
 export async function GET() {
   try {
-    const posts = await getAllBlogPosts();
+    const posts = await getAllBlogPostsForAdmin();
     return NextResponse.json(posts);
   } catch (error) {
     console.error('Error fetching blog posts:', error);

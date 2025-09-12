@@ -5,8 +5,7 @@ export const revalidate = 0;
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { auth } from '@/lib/firebase';
-import { onAuthStateChanged, signOut } from 'firebase/auth';
+import type { Auth, User } from 'firebase/auth';
 import {
   LayoutDashboard,
   FileText,
@@ -24,31 +23,55 @@ export default function AdminLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [auth, setAuth] = useState<Auth | null>(null);
   const router = useRouter();
   const pathname = usePathname();
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        setUser(user);
-      } else {
-        setUser(null);
-        // Only redirect if we're not already on the login page
-        if (pathname !== '/admin/login') {
-          router.push('/admin/login');
-        }
+    let unsubscribe: (() => void) | null = null;
+    
+    const initFirebase = async () => {
+      try {
+        const { auth: firebaseAuth } = await import('@/lib/firebase');
+        const { onAuthStateChanged } = await import('firebase/auth');
+        
+        setAuth(firebaseAuth);
+        
+        unsubscribe = onAuthStateChanged(firebaseAuth, (user) => {
+          if (user) {
+            setUser(user);
+          } else {
+            setUser(null);
+            // Only redirect if we're not already on the login page
+            if (pathname !== '/admin/login') {
+              router.push('/admin/login');
+            }
+          }
+          setLoading(false);
+        });
+      } catch (error) {
+        console.error('Error initializing Firebase:', error);
+        setLoading(false);
       }
-      setLoading(false);
-    });
-
-    return () => unsubscribe();
+    };
+    
+    initFirebase();
+    
+    return () => {
+      if (unsubscribe) {
+        unsubscribe();
+      }
+    };
   }, [router, pathname]);
 
   const handleSignOut = async () => {
+    if (!auth) return;
+    
     try {
+      const { signOut } = await import('firebase/auth');
       await signOut(auth);
       router.push('/');
     } catch (error) {

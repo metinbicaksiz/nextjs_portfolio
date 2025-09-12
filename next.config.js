@@ -3,7 +3,7 @@ const nextConfig = {
   images: {
     domains: ['localhost', 'metin.bicaksiz.com'],
   },
-  webpack: (config, { isServer }) => {
+  webpack: (config, { isServer, dev }) => {
     config.resolve.fallback = { 
       ...config.resolve.fallback,
       fs: false,
@@ -15,7 +15,7 @@ const nextConfig = {
       url: false,
     };
     
-    // Try to ignore undici entirely for client builds
+    // Handle undici issues by excluding it from client-side builds
     if (!isServer) {
       config.externals = config.externals || [];
       config.externals.push('undici');
@@ -26,9 +26,27 @@ const nextConfig = {
       };
     }
     
+    // Add rule to handle problematic modules
+    config.module.rules.push({
+      test: /node_modules[\/\\]undici[\/\\].*\.js$/,
+      loader: 'null-loader',
+    });
+    
+    // Exclude problematic modules from being processed
+    config.module.rules.push({
+      test: /node_modules[\/\\](undici|@firebase[\/\\]auth)[\/\\].*\.(js|mjs)$/,
+      type: 'javascript/auto',
+      resolve: {
+        fullySpecified: false,
+      },
+    });
+    
     return config;
   },
-  transpilePackages: ['firebase'],
+  transpilePackages: ['firebase', '@firebase/auth', '@firebase/firestore'],
+  experimental: {
+    esmExternals: 'loose',
+  },
   // Skip type checking during build to avoid Firebase issues
   typescript: {
     ignoreBuildErrors: true,

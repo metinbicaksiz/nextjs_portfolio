@@ -2,6 +2,11 @@
 import { createClient } from '@/utils/supabase/server';
 import { createServiceClient } from '@/utils/supabase/service';
 
+// Helper function to get service client for admin operations
+function getServiceClient() {
+  return createServiceClient();
+}
+
 // Blog post types
 export interface BlogPost {
   id?: number;
@@ -67,6 +72,40 @@ export async function getAllBlogPosts(): Promise<BlogPost[]> {
     return [];
   }
 }
+
+// Admin function to get all blog posts (including unpublished)
+export async function getAllBlogPostsForAdmin(): Promise<BlogPost[]> {
+    // Use service client for admin operations to bypass RLS
+    const supabase = getServiceClient();
+    try {
+    const { data:posts, error } = await supabase
+      .from('blog_post')
+      .select('*')
+      .order('created_at', { ascending: false });
+    if (error) throw error;
+    return (posts || []) as BlogPost[];
+  } catch (error) {
+    console.error('Error fetching blog posts for admin:', error);
+    return [];
+  }
+}
+
+export async function getBlogPostById(id: number): Promise<BlogPost | null> {
+  try {
+    // Use service client for admin operations to bypass RLS
+    const supabase = getServiceClient();
+    const { data, error } = await supabase
+      .from('blog_post')
+      .select('*')
+      .eq('id', id)
+      .maybeSingle();
+    if (error) throw error;
+    return (data as BlogPost) || null;
+  } catch (error) {
+    console.error('Error fetching blog post by ID:', error);
+    return null;
+  }
+}
 //
 // export async function getBlogPostBySlug(slug: string): Promise<BlogPost | null> {
 //   try {
@@ -86,7 +125,8 @@ export async function getAllBlogPosts(): Promise<BlogPost[]> {
 
 export async function createBlogPost(post: BlogPost): Promise<boolean> {
   try {
-      const supabase = await createClient();
+      // Use service client for admin operations to bypass RLS
+      const supabase = getServiceClient();
       const { error } = await supabase
       .from('blog_post')
       .insert([{
@@ -107,12 +147,22 @@ export async function createBlogPost(post: BlogPost): Promise<boolean> {
 
 export async function updateBlogPost(id: number, post: Partial<BlogPost>): Promise<boolean> {
   try {
-      const supabase = await createClient();
-      const { error } = await supabase
+      // Use service client for admin operations to bypass RLS
+      const supabase = getServiceClient();
+      console.log('Attempting to update blog post:', { id, post });
+      
+      const { data, error } = await supabase
       .from('blog_post')
       .update(post)
-      .eq('id', id);
-    if (error) throw error;
+      .eq('id', id)
+      .select();
+      
+    if (error) {
+      console.error('Supabase error updating blog post:', error);
+      throw error;
+    }
+    
+    console.log('Blog post updated successfully:', data);
     return true;
   } catch (error) {
     console.error('Error updating blog post:', error);
@@ -122,12 +172,22 @@ export async function updateBlogPost(id: number, post: Partial<BlogPost>): Promi
 
 export async function deleteBlogPost(id: number): Promise<boolean> {
   try {
-    const supabase = await createClient();
-    const { error } = await supabase
+    // Use service client for admin operations to bypass RLS
+    const supabase = getServiceClient();
+    console.log('Attempting to delete blog post with ID:', id);
+    
+    const { data, error } = await supabase
       .from('blog_post')
       .delete()
-      .eq('id', id);
-    if (error) throw error;
+      .eq('id', id)
+      .select();
+      
+    if (error) {
+      console.error('Supabase error deleting blog post:', error);
+      throw error;
+    }
+    
+    console.log('Blog post deleted successfully:', data);
     return true;
   } catch (error) {
     console.error('Error deleting blog post:', error);
@@ -152,9 +212,45 @@ export async function getAllRepositories(): Promise<Repository[]> {
   }
 }
 
+// Admin function to get all repositories
+export async function getAllRepositoriesForAdmin(): Promise<Repository[]> {
+  try {
+      // Use service client for admin operations to bypass RLS
+      const supabase = getServiceClient();
+
+      const { data, error } = await supabase
+      .from('repositories')
+      .select('*')
+      .order('created_at', { ascending: false });
+    if (error) throw error;
+    return (data || []) as Repository[];
+  } catch (error) {
+    console.error('Error fetching repositories for admin:', error);
+    return [];
+  }
+}
+
+export async function getRepositoryById(id: number): Promise<Repository | null> {
+  try {
+    // Use service client for admin operations to bypass RLS
+    const supabase = getServiceClient();
+    const { data, error } = await supabase
+      .from('repositories')
+      .select('*')
+      .eq('id', id)
+      .maybeSingle();
+    if (error) throw error;
+    return (data as Repository) || null;
+  } catch (error) {
+    console.error('Error fetching repository by ID:', error);
+    return null;
+  }
+}
+
 export async function createRepository(repo: Repository): Promise<boolean> {
   try {
-      const supabase = await createClient();
+      // Use service client for admin operations to bypass RLS
+      const supabase = getServiceClient();
 
       const { error } = await supabase
       .from('repositories')
@@ -177,13 +273,22 @@ export async function createRepository(repo: Repository): Promise<boolean> {
 
 export async function updateRepository(id: number, repo: Partial<Repository>): Promise<boolean> {
   try {
-      const supabase = await createClient();
+      // Use service client for admin operations to bypass RLS
+      const supabase = getServiceClient();
+      console.log('Attempting to update repository:', { id, repo });
 
-      const { error } = await supabase
+      const { data, error } = await supabase
       .from('repositories')
       .update(repo)
-      .eq('id', id);
-    if (error) throw error;
+      .eq('id', id)
+      .select();
+      
+    if (error) {
+      console.error('Supabase error updating repository:', error);
+      throw error;
+    }
+    
+    console.log('Repository updated successfully:', data);
     return true;
   } catch (error) {
     console.error('Error updating repository:', error);
@@ -193,13 +298,22 @@ export async function updateRepository(id: number, repo: Partial<Repository>): P
 
 export async function deleteRepository(id: number): Promise<boolean> {
   try {
-      const supabase = await createClient();
+      // Use service client for admin operations to bypass RLS
+      const supabase = getServiceClient();
+      console.log('Attempting to delete repository with ID:', id);
 
-      const { error } = await supabase
+      const { data, error } = await supabase
       .from('repositories')
       .delete()
-      .eq('id', id);
-    if (error) throw error;
+      .eq('id', id)
+      .select();
+      
+    if (error) {
+      console.error('Supabase error deleting repository:', error);
+      throw error;
+    }
+    
+    console.log('Repository deleted successfully:', data);
     return true;
   } catch (error) {
     console.error('Error deleting repository:', error);

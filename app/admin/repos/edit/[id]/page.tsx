@@ -37,25 +37,22 @@ export default function EditRepository() {
   useEffect(() => {
     const fetchRepo = async () => {
       try {
-        const response = await fetch('/api/admin/repos');
+        const response = await fetch(`/api/admin/repos/${params.id}`);
         if (response.ok) {
-          const repos: Repository[] = await response.json();
-          const repo = repos.find(r => r.id === parseInt(params.id as string));
+          const repo: Repository = await response.json();
           
-          if (repo) {
-            setFormData({
-              title: repo.title,
-              description: repo.description,
-              github_url: repo.github_url,
-              demo_url: repo.demo_url || '',
-              thumbnail: repo.thumbnail || '',
-              technologies: repo.technologies,
-              featured: repo.featured
-            });
-          } else {
-            toast.error('Repository not found');
-            router.push('/admin/repos');
-          }
+          setFormData({
+            title: repo.title,
+            description: repo.description,
+            github_url: repo.github_url,
+            demo_url: repo.demo_url || '',
+            thumbnail: repo.thumbnail || '',
+            technologies: repo.technologies,
+            featured: repo.featured
+          });
+        } else if (response.status === 404) {
+          toast.error('Repository not found');
+          router.push('/admin/repos');
         } else {
           toast.error('Failed to fetch repository');
           router.push('/admin/repos');
