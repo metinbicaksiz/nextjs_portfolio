@@ -3,11 +3,10 @@ import Footer from '@/components/Footer';
 import Link from 'next/link';
 import { Calendar, Clock, ArrowRight } from 'lucide-react';
 import { format } from 'date-fns';
-import { createClient } from '@/utils/supabase/server';
+import { getAllBlogPosts } from '@/lib/database';
 
 export default async function BlogPage() {
-    const supabase = await createClient();
-    const { data: blogPosts }: any = await supabase.from('blog_post').select()
+    const blogPosts = await getAllBlogPosts();
 
     return (
     <>

@@ -1,8 +1,7 @@
-import { createClient } from '@/utils/supabase/server';
+import { getAllInstruments } from '@/lib/database';
 
 export default async function Instruments() {
-    const supabase = await createClient();
-    const { data: instruments } = await supabase.from("instruments").select();
+    const instruments = await getAllInstruments();
 
     return (
         <>

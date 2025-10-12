@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
     User,
     Mail,
@@ -21,11 +21,11 @@ export default function AdminSettings() {
   const [loading, setLoading] = useState(false);
 
   const [profileData, setProfileData] = useState({
-    name: 'Metin Bicaksiz',
-    email: 'metin@bicaksiz.com',
-    bio: 'Full Stack Developer passionate about creating amazing web experiences.',
-    location: 'Turkey',
-    website: 'https://metin.bicaksiz.com'
+    name: '',
+    email: '',
+    bio: '',
+    location: '',
+    website: ''
   });
 
   const [passwordData, setPasswordData] = useState({
@@ -35,18 +35,64 @@ export default function AdminSettings() {
   });
 
   const [notificationSettings, setNotificationSettings] = useState({
-    emailNotifications: true,
+    emailNotifications: false,
     pushNotifications: false,
-    weeklyDigest: true,
-    securityAlerts: true
+    weeklyDigest: false,
+    securityAlerts: false
   });
+
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const res = await fetch('/api/admin/settings', { cache: 'no-store' });
+        if (!res.ok) return;
+        const s = await res.json();
+        if (!mounted || !s) return;
+        setProfileData({
+          name: s.name || '',
+          email: s.email || '',
+          bio: s.bio || '',
+          location: s.location || '',
+          website: s.website || '',
+        });
+        setNotificationSettings({
+          emailNotifications: !!s.email_notifications,
+          pushNotifications: !!s.push_notifications,
+          weeklyDigest: !!s.weekly_digest,
+          securityAlerts: !!s.security_alerts,
+        });
+      } catch {}
+    })();
+    return () => { mounted = false };
+  }, []);
+
+  async function saveSettings() {
+    const payload = {
+      name: profileData.name,
+      email: profileData.email,
+      bio: profileData.bio,
+      location: profileData.location,
+      website: profileData.website,
+      email_notifications: notificationSettings.emailNotifications,
+      push_notifications: notificationSettings.pushNotifications,
+      weekly_digest: notificationSettings.weeklyDigest,
+      security_alerts: notificationSettings.securityAlerts,
+    };
+    const res = await fetch('/api/admin/settings', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    return res.ok;
+  }
 
   const handleProfileSave = async () => {
     setLoading(true);
     try {
-      // TODO: Implement profile update API call
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API call
-      toast.success('Profile updated successfully!');
+      const ok = await saveSettings();
+      if (ok) toast.success('Profile updated successfully!');
+      else toast.error('Failed to update profile.');
     } catch (error) {
       toast.error('Failed to update profile. Please try again.');
     } finally {
@@ -81,9 +127,9 @@ export default function AdminSettings() {
   const handleNotificationSave = async () => {
     setLoading(true);
     try {
-      // TODO: Implement notification settings API call
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API call
-      toast.success('Notification settings updated successfully!');
+      const ok = await saveSettings();
+      if (ok) toast.success('Notification settings updated successfully!');
+      else toast.error('Failed to update notification settings.');
     } catch (error) {
       toast.error('Failed to update notification settings. Please try again.');
     } finally {

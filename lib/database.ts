@@ -1,11 +1,4 @@
-// import { createClient } from '@supabase/supabase-js'
-import { createClient } from '@/utils/supabase/server';
-import { createServiceClient } from '@/utils/supabase/service';
-
-// Helper function to get service client for admin operations
-function getServiceClient() {
-  return createServiceClient();
-}
+import mysql, { Pool } from 'mysql2/promise';
 
 // Blog post types
 export interface BlogPost {
@@ -44,29 +37,51 @@ export interface Contact {
   created_at?: Date;
 }
 
-// Helper function to get appropriate client
-// For read-only operations during build time, use service client to avoid cookies
-async function getClient() {
+// MySQL pool
+let pool: Pool | undefined;
+
+function getPool(): Pool {
+  if (!pool) {
+    pool = mysql.createPool({
+      host: process.env.DB_HOST || 'localhost',
+      user: process.env.DB_USER || 'root',
+      password: process.env.DB_PASSWORD || '',
+      database: process.env.DB_NAME || 'portfolio',
+      port: Number(process.env.DB_PORT || 3306),
+      connectionLimit: 10,
+      waitForConnections: true,
+      connectTimeout: Number(process.env.DB_CONNECT_TIMEOUT || 10000),
+      ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : undefined,
+    });
+  }
+  return pool;
+}
+
+async function query<T = any>(sql: string, params: any[] = []): Promise<T[]> {
+  const [rows] = await getPool().execute(sql, params);
+  return rows as T[];
+}
+
+// Simple connectivity check
+export async function pingDatabase(): Promise<{ ok: boolean; serverVersion?: string; error?: string }>{
   try {
-    // Check if we're in a build context or if cookies are unavailable
-    return await createClient();
-  } catch (error) {
-    // Fallback to service client for build-time operations
-    return createServiceClient();
+    const pool = getPool();
+    // Run a lightweight query
+    const [rows] = await pool.query('SELECT VERSION() AS version');
+    const version = Array.isArray(rows) && rows.length > 0 && (rows[0] as any).version;
+    return { ok: true, serverVersion: version };
+  } catch (err: any) {
+    return { ok: false, error: err?.message || String(err) };
   }
 }
 
 // Blog functions
 export async function getAllBlogPosts(): Promise<BlogPost[]> {
-    const supabase = await getClient();
-    try {
-    const { data:posts, error } = await supabase
-      .from('blog_post')
-      .select('*')
-      .eq('published', true)
-      .order('created_at', { ascending: false });
-    if (error) throw error;
-    return (posts || []) as BlogPost[];
+  try {
+    const rows = await query<BlogPost>(
+      'SELECT * FROM blog_post WHERE published = 1 ORDER BY created_at DESC'
+    );
+    return rows;
   } catch (error) {
     console.error('Error fetching blog posts:', error);
     return [];
@@ -75,15 +90,11 @@ export async function getAllBlogPosts(): Promise<BlogPost[]> {
 
 // Admin function to get all blog posts (including unpublished)
 export async function getAllBlogPostsForAdmin(): Promise<BlogPost[]> {
-    // Use service client for admin operations to bypass RLS
-    const supabase = getServiceClient();
-    try {
-    const { data:posts, error } = await supabase
-      .from('blog_post')
-      .select('*')
-      .order('created_at', { ascending: false });
-    if (error) throw error;
-    return (posts || []) as BlogPost[];
+  try {
+    const rows = await query<BlogPost>(
+      'SELECT * FROM blog_post ORDER BY created_at DESC'
+    );
+    return rows;
   } catch (error) {
     console.error('Error fetching blog posts for admin:', error);
     return [];
@@ -92,15 +103,11 @@ export async function getAllBlogPostsForAdmin(): Promise<BlogPost[]> {
 
 export async function getBlogPostById(id: number): Promise<BlogPost | null> {
   try {
-    // Use service client for admin operations to bypass RLS
-    const supabase = getServiceClient();
-    const { data, error } = await supabase
-      .from('blog_post')
-      .select('*')
-      .eq('id', id)
-      .maybeSingle();
-    if (error) throw error;
-    return (data as BlogPost) || null;
+    const rows = await query<BlogPost>(
+      'SELECT * FROM blog_post WHERE id = ? LIMIT 1',
+      [id]
+    );
+    return rows[0] || null;
   } catch (error) {
     console.error('Error fetching blog post by ID:', error);
     return null;
@@ -125,19 +132,17 @@ export async function getBlogPostById(id: number): Promise<BlogPost | null> {
 
 export async function createBlogPost(post: BlogPost): Promise<boolean> {
   try {
-      // Use service client for admin operations to bypass RLS
-      const supabase = getServiceClient();
-      const { error } = await supabase
-      .from('blog_post')
-      .insert([{
-        title: post.title,
-        content: post.content,
-        excerpt: post.excerpt,
-        slug: post.slug,
-        featured_image: post.featured_image || null,
-        published: post.published,
-      }]);
-    if (error) throw error;
+    await query(
+      'INSERT INTO blog_post (title, content, excerpt, slug, featured_image, published) VALUES (?, ?, ?, ?, ?, ?)',
+      [
+        post.title,
+        post.content,
+        post.excerpt,
+        post.slug,
+        post.featured_image || null,
+        post.published ? 1 : 0,
+      ]
+    );
     return true;
   } catch (error) {
     console.error('Error creating blog post:', error);
@@ -147,22 +152,20 @@ export async function createBlogPost(post: BlogPost): Promise<boolean> {
 
 export async function updateBlogPost(id: number, post: Partial<BlogPost>): Promise<boolean> {
   try {
-      // Use service client for admin operations to bypass RLS
-      const supabase = getServiceClient();
-      console.log('Attempting to update blog post:', { id, post });
-      
-      const { data, error } = await supabase
-      .from('blog_post')
-      .update(post)
-      .eq('id', id)
-      .select();
-      
-    if (error) {
-      console.error('Supabase error updating blog post:', error);
-      throw error;
-    }
-    
-    console.log('Blog post updated successfully:', data);
+    const fields: string[] = [];
+    const values: any[] = [];
+    if (post.title !== undefined) { fields.push('title = ?'); values.push(post.title); }
+    if (post.content !== undefined) { fields.push('content = ?'); values.push(post.content); }
+    if (post.excerpt !== undefined) { fields.push('excerpt = ?'); values.push(post.excerpt); }
+    if (post.slug !== undefined) { fields.push('slug = ?'); values.push(post.slug); }
+    if (post.featured_image !== undefined) { fields.push('featured_image = ?'); values.push(post.featured_image); }
+    if (post.published !== undefined) { fields.push('published = ?'); values.push(post.published ? 1 : 0); }
+    if (fields.length === 0) return true;
+    values.push(id);
+    await query(
+      `UPDATE blog_post SET ${fields.join(', ')} WHERE id = ?`,
+      values
+    );
     return true;
   } catch (error) {
     console.error('Error updating blog post:', error);
@@ -172,22 +175,7 @@ export async function updateBlogPost(id: number, post: Partial<BlogPost>): Promi
 
 export async function deleteBlogPost(id: number): Promise<boolean> {
   try {
-    // Use service client for admin operations to bypass RLS
-    const supabase = getServiceClient();
-    console.log('Attempting to delete blog post with ID:', id);
-    
-    const { data, error } = await supabase
-      .from('blog_post')
-      .delete()
-      .eq('id', id)
-      .select();
-      
-    if (error) {
-      console.error('Supabase error deleting blog post:', error);
-      throw error;
-    }
-    
-    console.log('Blog post deleted successfully:', data);
+    await query('DELETE FROM blog_post WHERE id = ?', [id]);
     return true;
   } catch (error) {
     console.error('Error deleting blog post:', error);
@@ -198,14 +186,10 @@ export async function deleteBlogPost(id: number): Promise<boolean> {
 // Repository functions
 export async function getAllRepositories(): Promise<Repository[]> {
   try {
-      const supabase = await getClient();
-
-      const { data, error } = await supabase
-      .from('repositories')
-      .select('*')
-      .order('created_at', { ascending: false });
-    if (error) throw error;
-    return (data || []) as Repository[];
+    const rows = await query<Repository>(
+      'SELECT * FROM repositories ORDER BY created_at DESC'
+    );
+    return rows;
   } catch (error) {
     console.error('Error fetching repositories:', error);
     return [];
@@ -215,15 +199,10 @@ export async function getAllRepositories(): Promise<Repository[]> {
 // Admin function to get all repositories
 export async function getAllRepositoriesForAdmin(): Promise<Repository[]> {
   try {
-      // Use service client for admin operations to bypass RLS
-      const supabase = getServiceClient();
-
-      const { data, error } = await supabase
-      .from('repositories')
-      .select('*')
-      .order('created_at', { ascending: false });
-    if (error) throw error;
-    return (data || []) as Repository[];
+    const rows = await query<Repository>(
+      'SELECT * FROM repositories ORDER BY created_at DESC'
+    );
+    return rows;
   } catch (error) {
     console.error('Error fetching repositories for admin:', error);
     return [];
@@ -232,15 +211,11 @@ export async function getAllRepositoriesForAdmin(): Promise<Repository[]> {
 
 export async function getRepositoryById(id: number): Promise<Repository | null> {
   try {
-    // Use service client for admin operations to bypass RLS
-    const supabase = getServiceClient();
-    const { data, error } = await supabase
-      .from('repositories')
-      .select('*')
-      .eq('id', id)
-      .maybeSingle();
-    if (error) throw error;
-    return (data as Repository) || null;
+    const rows = await query<Repository>(
+      'SELECT * FROM repositories WHERE id = ? LIMIT 1',
+      [id]
+    );
+    return rows[0] || null;
   } catch (error) {
     console.error('Error fetching repository by ID:', error);
     return null;
@@ -249,21 +224,18 @@ export async function getRepositoryById(id: number): Promise<Repository | null> 
 
 export async function createRepository(repo: Repository): Promise<boolean> {
   try {
-      // Use service client for admin operations to bypass RLS
-      const supabase = getServiceClient();
-
-      const { error } = await supabase
-      .from('repositories')
-      .insert([{
-        title: repo.title,
-        description: repo.description,
-        github_url: repo.github_url,
-        demo_url: repo.demo_url || null,
-        thumbnail: repo.thumbnail || null,
-        technologies: repo.technologies,
-        featured: repo.featured,
-      }]);
-    if (error) throw error;
+    await query(
+      'INSERT INTO repositories (title, description, github_url, demo_url, thumbnail, technologies, featured) VALUES (?, ?, ?, ?, ?, ?, ?)',
+      [
+        repo.title,
+        repo.description,
+        repo.github_url,
+        repo.demo_url || null,
+        repo.thumbnail || null,
+        repo.technologies,
+        repo.featured ? 1 : 0,
+      ]
+    );
     return true;
   } catch (error) {
     console.error('Error creating repository:', error);
@@ -273,22 +245,21 @@ export async function createRepository(repo: Repository): Promise<boolean> {
 
 export async function updateRepository(id: number, repo: Partial<Repository>): Promise<boolean> {
   try {
-      // Use service client for admin operations to bypass RLS
-      const supabase = getServiceClient();
-      console.log('Attempting to update repository:', { id, repo });
-
-      const { data, error } = await supabase
-      .from('repositories')
-      .update(repo)
-      .eq('id', id)
-      .select();
-      
-    if (error) {
-      console.error('Supabase error updating repository:', error);
-      throw error;
-    }
-    
-    console.log('Repository updated successfully:', data);
+    const fields: string[] = [];
+    const values: any[] = [];
+    if (repo.title !== undefined) { fields.push('title = ?'); values.push(repo.title); }
+    if (repo.description !== undefined) { fields.push('description = ?'); values.push(repo.description); }
+    if (repo.github_url !== undefined) { fields.push('github_url = ?'); values.push(repo.github_url); }
+    if (repo.demo_url !== undefined) { fields.push('demo_url = ?'); values.push(repo.demo_url); }
+    if (repo.thumbnail !== undefined) { fields.push('thumbnail = ?'); values.push(repo.thumbnail); }
+    if (repo.technologies !== undefined) { fields.push('technologies = ?'); values.push(repo.technologies); }
+    if (repo.featured !== undefined) { fields.push('featured = ?'); values.push(repo.featured ? 1 : 0); }
+    if (fields.length === 0) return true;
+    values.push(id);
+    await query(
+      `UPDATE repositories SET ${fields.join(', ')} WHERE id = ?`,
+      values
+    );
     return true;
   } catch (error) {
     console.error('Error updating repository:', error);
@@ -298,22 +269,7 @@ export async function updateRepository(id: number, repo: Partial<Repository>): P
 
 export async function deleteRepository(id: number): Promise<boolean> {
   try {
-      // Use service client for admin operations to bypass RLS
-      const supabase = getServiceClient();
-      console.log('Attempting to delete repository with ID:', id);
-
-      const { data, error } = await supabase
-      .from('repositories')
-      .delete()
-      .eq('id', id)
-      .select();
-      
-    if (error) {
-      console.error('Supabase error deleting repository:', error);
-      throw error;
-    }
-    
-    console.log('Repository deleted successfully:', data);
+    await query('DELETE FROM repositories WHERE id = ?', [id]);
     return true;
   } catch (error) {
     console.error('Error deleting repository:', error);
@@ -324,16 +280,10 @@ export async function deleteRepository(id: number): Promise<boolean> {
 // Contact form functions
 export async function saveContact(contact: Contact): Promise<boolean> {
   try {
-      const supabase = await createClient();
-      const { error } = await supabase
-      .from('contact')
-      .insert([{
-        name: contact.name,
-        email: contact.email,
-        phone: contact.phone || null,
-        message: contact.message,
-      }]);
-    if (error) throw error;
+    await query(
+      'INSERT INTO contact (name, email, phone, message) VALUES (?, ?, ?, ?)',
+      [contact.name, contact.email, contact.phone || null, contact.message]
+    );
     return true;
   } catch (error) {
     console.error('Error saving contact form submission:', error);
@@ -343,13 +293,10 @@ export async function saveContact(contact: Contact): Promise<boolean> {
 
 export async function getAllContacts(): Promise<Contact[]> {
   try {
-      const supabase = await getClient();
-      const { data, error } = await supabase
-      .from('contact')
-      .select('*')
-      .order('created_at', { ascending: false });
-    if (error) throw error;
-    return (data || []) as Contact[];
+    const rows = await query<Contact>(
+      'SELECT * FROM contact ORDER BY created_at DESC'
+    );
+    return rows;
   } catch (error) {
     console.error('Error fetching contacts:', error);
     return [];
@@ -358,15 +305,83 @@ export async function getAllContacts(): Promise<Contact[]> {
 
 export async function deleteContact(id: number): Promise<boolean> {
   try {
-      const supabase = await createClient();
-      const { error } = await supabase
-      .from('contact')
-      .delete()
-      .eq('id', id);
-    if (error) throw error;
+    await query('DELETE FROM contact WHERE id = ?', [id]);
     return true;
   } catch (error) {
     console.error('Error deleting contact:', error);
+    return false;
+  }
+}
+
+// Instruments (optional section if you have an instruments table)
+export interface Instrument {
+  id?: number;
+  name: string;
+}
+
+export async function getAllInstruments(): Promise<Instrument[]> {
+  try {
+    const rows = await query<Instrument>('SELECT * FROM instruments ORDER BY id ASC');
+    return rows;
+  } catch (error) {
+    console.error('Error fetching instruments:', error);
+    return [];
+  }
+}
+
+// Admin settings (single-row table)
+export interface AdminSettings {
+  id?: number; // defaults to 1
+  name: string;
+  email: string;
+  bio: string;
+  location: string;
+  website: string;
+  email_notifications: boolean;
+  push_notifications: boolean;
+  weekly_digest: boolean;
+  security_alerts: boolean;
+  updated_at?: Date;
+}
+
+export async function getAdminSettings(): Promise<AdminSettings | null> {
+  try {
+    const rows = await query<AdminSettings>(
+      'SELECT * FROM admin_settings WHERE id = 1 LIMIT 1'
+    );
+    if (!rows[0]) return null;
+    const s = rows[0] as any;
+    // normalize booleans if stored as tinyint
+    s.email_notifications = !!s.email_notifications;
+    s.push_notifications = !!s.push_notifications;
+    s.weekly_digest = !!s.weekly_digest;
+    s.security_alerts = !!s.security_alerts;
+    return s as AdminSettings;
+  } catch (error) {
+    console.error('Error fetching admin settings:', error);
+    return null;
+  }
+}
+
+export async function upsertAdminSettings(settings: AdminSettings): Promise<boolean> {
+  try {
+    await query(
+      'INSERT INTO admin_settings (id, name, email, bio, location, website, email_notifications, push_notifications, weekly_digest, security_alerts, updated_at) VALUES (1, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW()) ON DUPLICATE KEY UPDATE name=VALUES(name), email=VALUES(email), bio=VALUES(bio), location=VALUES(location), website=VALUES(website), email_notifications=VALUES(email_notifications), push_notifications=VALUES(push_notifications), weekly_digest=VALUES(weekly_digest), security_alerts=VALUES(security_alerts), updated_at=NOW()'
+      , [
+        settings.name,
+        settings.email,
+        settings.bio,
+        settings.location,
+        settings.website,
+        settings.email_notifications ? 1 : 0,
+        settings.push_notifications ? 1 : 0,
+        settings.weekly_digest ? 1 : 0,
+        settings.security_alerts ? 1 : 0,
+      ]
+    );
+    return true;
+  } catch (error) {
+    console.error('Error upserting admin settings:', error);
     return false;
   }
 }

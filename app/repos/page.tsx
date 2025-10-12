@@ -1,11 +1,10 @@
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
 import RepositoryCard from '@/components/RepositoryCard';
-import { createClient } from '@/utils/supabase/server';
+import { getAllRepositories } from '@/lib/database';
 
 export default async function ReposPage() {
-    const supabase = await createClient();
-    const { data: repositories }: any = await supabase.from("repositories").select();
+    const repositories = await getAllRepositories();
 
   return (
     <>
