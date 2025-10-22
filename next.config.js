@@ -1,7 +1,17 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
-    domains: ['localhost', 'metin.bicaksiz.com'],
+    // domains: ['localhost', 'metin.bicaksiz.com', 'drive.google.com'],
+      remotePatterns: [{
+        protocol: 'http',
+          hostname: 'localhost',
+      },{
+        protocol: 'https',
+          hostname: 'drive.google.com',
+      },{
+        protocol: 'https',
+          hostname: 'metin.bicaksiz.com',
+      }],
   },
   webpack: (config, { isServer, dev }) => {
     config.resolve.fallback = { 
