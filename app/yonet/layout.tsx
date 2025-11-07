@@ -46,8 +46,8 @@ export default function AdminLayout({
           } else {
             setUser(null);
             // Only redirect if we're not already on the login page
-            if (pathname !== '/admin/login') {
-              router.push('/admin/login');
+            if (pathname !== '/yonet/login') {
+              router.push('/yonet/login');
             }
           }
           setLoading(false);
