@@ -113,22 +113,27 @@ export async function getBlogPostById(id: number): Promise<BlogPost | null> {
     return null;
   }
 }
-//
-// export async function getBlogPostBySlug(slug: string): Promise<BlogPost | null> {
-//   try {
-//     const { data, error } = await supabase
-//       .from('blog_posts')
-//       .select('*')
-//       .eq('slug', slug)
-//       .eq('published', true)
-//       .maybeSingle();
-//     if (error) throw error;
-//     return (data as BlogPost) || null;
-//   } catch (error) {
-//     console.error('Error fetching blog post:', error);
-//     return null;
-//   }
-// }
+
+export async function getBlogPostBySlug(slug: string): Promise<BlogPost | null> {
+  try {
+    const [rows] = await getPool().execute<mysql.RowDataPacket[]>(
+      'SELECT * FROM blog_posts WHERE slug = ? AND published = 1',
+      [slug]
+    );
+    
+    if (rows.length === 0) return null;
+    
+    // Convert date strings to Date objects
+    const post = rows[0];
+    if (post.created_at) post.created_at = new Date(post.created_at);
+    if (post.updated_at) post.updated_at = new Date(post.updated_at);
+    
+    return post as BlogPost;
+  } catch (error) {
+    console.error('Error fetching blog post by slug:', error);
+    return null;
+  }
+}
 
 export async function createBlogPost(post: BlogPost): Promise<boolean> {
   try {
