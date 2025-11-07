@@ -19,7 +19,7 @@ export default function AdminLogin() {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user) {
         setIsAuthenticated(true);
-        router.push('/admin');
+        router.push('/yonet');
       } else {
         setIsAuthenticated(false);
       }
@@ -42,7 +42,7 @@ export default function AdminLogin() {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       if (userCredential.user) {
         toast.success('Login successful!');
-        router.push('/admin');
+        router.push('/yonet');
       }
     } catch (error: any) {
       console.error('Login error:', error);
