@@ -79,7 +79,7 @@ export async function pingDatabase(): Promise<{ ok: boolean; serverVersion?: str
 export async function getAllBlogPosts(): Promise<BlogPost[]> {
   try {
     const rows = await query<BlogPost>(
-      'SELECT * FROM blog_post WHERE published = 1 ORDER BY created_at DESC'
+      'SELECT * FROM blog_posts WHERE published = 1 ORDER BY created_at DESC'
     );
     return rows;
   } catch (error) {
@@ -92,7 +92,7 @@ export async function getAllBlogPosts(): Promise<BlogPost[]> {
 export async function getAllBlogPostsForAdmin(): Promise<BlogPost[]> {
   try {
     const rows = await query<BlogPost>(
-      'SELECT * FROM blog_post ORDER BY created_at DESC'
+      'SELECT * FROM blog_posts ORDER BY created_at DESC'
     );
     return rows;
   } catch (error) {
@@ -104,7 +104,7 @@ export async function getAllBlogPostsForAdmin(): Promise<BlogPost[]> {
 export async function getBlogPostById(id: number): Promise<BlogPost | null> {
   try {
     const rows = await query<BlogPost>(
-      'SELECT * FROM blog_post WHERE id = ? LIMIT 1',
+      'SELECT * FROM blog_posts WHERE id = ? LIMIT 1',
       [id]
     );
     return rows[0] || null;
@@ -138,7 +138,7 @@ export async function getBlogPostBySlug(slug: string): Promise<BlogPost | null> 
 export async function createBlogPost(post: BlogPost): Promise<boolean> {
   try {
     await query(
-      'INSERT INTO blog_post (title, content, excerpt, slug, featured_image, published) VALUES (?, ?, ?, ?, ?, ?)',
+      'INSERT INTO blog_posts (title, content, excerpt, slug, featured_image, published) VALUES (?, ?, ?, ?, ?, ?)',
       [
         post.title,
         post.content,
@@ -168,7 +168,7 @@ export async function updateBlogPost(id: number, post: Partial<BlogPost>): Promi
     if (fields.length === 0) return true;
     values.push(id);
     await query(
-      `UPDATE blog_post SET ${fields.join(', ')} WHERE id = ?`,
+      `UPDATE blog_posts SET ${fields.join(', ')} WHERE id = ?`,
       values
     );
     return true;
@@ -180,7 +180,7 @@ export async function updateBlogPost(id: number, post: Partial<BlogPost>): Promi
 
 export async function deleteBlogPost(id: number): Promise<boolean> {
   try {
-    await query('DELETE FROM blog_post WHERE id = ?', [id]);
+    await query('DELETE FROM blog_posts WHERE id = ?', [id]);
     return true;
   } catch (error) {
     console.error('Error deleting blog post:', error);
@@ -286,7 +286,7 @@ export async function deleteRepository(id: number): Promise<boolean> {
 export async function saveContact(contact: Contact): Promise<boolean> {
   try {
     await query(
-      'INSERT INTO contact (name, email, phone, message) VALUES (?, ?, ?, ?)',
+      'INSERT INTO contacts (name, email, phone, message) VALUES (?, ?, ?, ?)',
       [contact.name, contact.email, contact.phone || null, contact.message]
     );
     return true;
@@ -299,7 +299,7 @@ export async function saveContact(contact: Contact): Promise<boolean> {
 export async function getAllContacts(): Promise<Contact[]> {
   try {
     const rows = await query<Contact>(
-      'SELECT * FROM contact ORDER BY created_at DESC'
+      'SELECT * FROM contacts ORDER BY created_at DESC'
     );
     return rows;
   } catch (error) {
@@ -310,27 +310,11 @@ export async function getAllContacts(): Promise<Contact[]> {
 
 export async function deleteContact(id: number): Promise<boolean> {
   try {
-    await query('DELETE FROM contact WHERE id = ?', [id]);
+    await query('DELETE FROM contacts WHERE id = ?', [id]);
     return true;
   } catch (error) {
     console.error('Error deleting contact:', error);
     return false;
-  }
-}
-
-// Instruments (optional section if you have an instruments table)
-export interface Instrument {
-  id?: number;
-  name: string;
-}
-
-export async function getAllInstruments(): Promise<Instrument[]> {
-  try {
-    const rows = await query<Instrument>('SELECT * FROM instruments ORDER BY id ASC');
-    return rows;
-  } catch (error) {
-    console.error('Error fetching instruments:', error);
-    return [];
   }
 }
 
