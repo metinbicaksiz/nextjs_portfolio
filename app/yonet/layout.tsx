@@ -99,7 +99,7 @@ export default function AdminLayout({
   }
 
   // If user is not authenticated and we're on the login page, render the login page
-  if (!user && pathname === '/admin/login') {
+  if (!user && pathname === '/yonet/login') {
     return <>{children}</>;
   }
 

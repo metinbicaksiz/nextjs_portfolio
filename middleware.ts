@@ -24,5 +24,6 @@ export default withAuth(
 );
 
 export const config = {
-  matcher: ['/yonet/:path*'],
+  // Temporarily disable middleware guard for /yonet routes to avoid conflicts with Firebase auth
+  matcher: [],
 };
