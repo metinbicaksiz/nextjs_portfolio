@@ -36,12 +36,13 @@ const RepositoryCard = ({
       {/* Thumbnail */}
       <div className="relative h-48 mb-4 overflow-hidden rounded-lg">
         {thumbnail ? (
-          <Image
-            src={thumbnail}
-            alt={title}
-            fill
-            className="object-cover group-hover:scale-105 transition-transform duration-300"
-          />
+            <img src={thumbnail} alt={title}/>
+          // <Image
+          //   src={thumbnail}
+          //   alt={title}
+          //   fill
+          //   className="object-cover group-hover:scale-105 transition-transform duration-300"
+          // />
         ) : (
           <div className="w-full h-full bg-gradient-to-br from-primary-500 to-purple-600 flex items-center justify-center">
             <div className="text-white text-center">

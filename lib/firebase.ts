@@ -1,7 +1,6 @@
-import { initializeApp } from 'firebase/app';
+import { initializeApp, getApps, getApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
-import { getAnalytics } from 'firebase/analytics';
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -12,16 +11,18 @@ const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 };
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
+// Initialize Firebase (singleton, safe across HMR)
+const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
 
-// Initialize Firebase Authentication and get a reference to the service
+// Auth & Firestore
 export const auth = getAuth(app);
-
-// Initialize Cloud Firestore and get a reference to the service
 export const db = getFirestore(app);
 
-// Initialize Analytics only on client side
-export const analytics = typeof window !== 'undefined' ? getAnalytics(app) : null;
+// Analytics: load only on the client and only if supported
+export const getAnalyticsClient = async () => {
+  if (typeof window === 'undefined') return null;
+  const { isSupported, getAnalytics } = await import('firebase/analytics');
+  return (await isSupported()) ? getAnalytics(app) : null;
+};
 
 export default app;

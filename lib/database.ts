@@ -27,16 +27,6 @@ export interface Repository {
   updated_at?: Date;
 }
 
-// Contact form types
-export interface Contact {
-  id?: number;
-  name: string;
-  email: string;
-  phone?: string;
-  message: string;
-  created_at?: Date;
-}
-
 // MySQL pool
 let pool: Pool | undefined;
 
@@ -278,42 +268,6 @@ export async function deleteRepository(id: number): Promise<boolean> {
     return true;
   } catch (error) {
     console.error('Error deleting repository:', error);
-    return false;
-  }
-}
-
-// Contact form functions
-export async function saveContact(contact: Contact): Promise<boolean> {
-  try {
-    await query(
-      'INSERT INTO contacts (name, email, phone, message) VALUES (?, ?, ?, ?)',
-      [contact.name, contact.email, contact.phone || null, contact.message]
-    );
-    return true;
-  } catch (error) {
-    console.error('Error saving contact form submission:', error);
-    return false;
-  }
-}
-
-export async function getAllContacts(): Promise<Contact[]> {
-  try {
-    const rows = await query<Contact>(
-      'SELECT * FROM contacts ORDER BY created_at DESC'
-    );
-    return rows;
-  } catch (error) {
-    console.error('Error fetching contacts:', error);
-    return [];
-  }
-}
-
-export async function deleteContact(id: number): Promise<boolean> {
-  try {
-    await query('DELETE FROM contacts WHERE id = ?', [id]);
-    return true;
-  } catch (error) {
-    console.error('Error deleting contact:', error);
     return false;
   }
 }

@@ -36,7 +36,7 @@ export default function AdminRepos() {
   useEffect(() => {
     const fetchRepos = async () => {
       try {
-        const response = await fetch('/api/admin/repos');
+        const response = await fetch('/api/yonet/repos');
         if (response.ok) {
           const repositories = await response.json();
           setRepos(repositories);
@@ -61,7 +61,7 @@ export default function AdminRepos() {
     setDeleteLoading(id);
 
     try {
-      const response = await fetch(`/api/admin/repos/${id}`, {
+      const response = await fetch(`/api/yonet/repos/${id}`, {
         method: 'DELETE',
       });
 
@@ -95,7 +95,7 @@ export default function AdminRepos() {
         <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
                 <Link
-                    href="/admin"
+                    href="/yonet"
                     className="flex items-center text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100 transition-colors"
                 >
                     <ArrowLeft className="w-5 h-5 mr-2" />
@@ -109,7 +109,7 @@ export default function AdminRepos() {
           <p className="text-gray-600 dark:text-gray-400">Manage your project repositories</p>
         </div>
         <Link
-          href="/admin/repos/new"
+          href="/yonet/repos/new"
           className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
         >
           <Plus className="h-4 w-4 mr-2" />
@@ -217,7 +217,7 @@ export default function AdminRepos() {
                 Get started by adding your first repository.
               </p>
               <Link
-                href="/admin/repos/new"
+                href="/yonet/repos/new"
                 className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700"
               >
                 <Plus className="h-4 w-4 mr-2" />
@@ -271,7 +271,7 @@ export default function AdminRepos() {
                         <ExternalLink className="h-4 w-4" />
                       </a>
                       <Link
-                        href={`/admin/repos/edit/${repo.id}`}
+                        href={`/yonet/repos/edit/${repo.id}`}
                         className="text-primary-600 hover:text-primary-900 dark:text-primary-400 dark:hover:text-primary-300"
                         title="Edit repository"
                       >

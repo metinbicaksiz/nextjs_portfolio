@@ -1,29 +1,14 @@
-import { withAuth } from 'next-auth/middleware';
+// Middleware disabled: using Firebase Auth on the client for /yonet routes.
+// Keeping this file as a no-op to avoid any NextAuth-based redirects that can
+// cause loops between /yonet and /yonet/login.
+import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 
-export default withAuth(
-  function middleware(req) {
-    return NextResponse.next();
-  },
-  {
-    callbacks: {
-      authorized: ({ req, token }) => {
-        const { pathname } = req.nextUrl;
-        // Allow the login page to render without a token to avoid redirect loops
-        if (pathname === '/yonet/login') {
-          return true;
-        }
-        // Require a NextAuth token for other /yonet routes
-        return !!token;
-      },
-    },
-    pages: {
-      signIn: '/yonet/login', // Route to the login page
-    },
-  }
-);
+export default function middleware(_req: NextRequest) {
+  return NextResponse.next();
+}
 
+// Do not match any route (explicitly empty) to ensure this middleware is inert.
 export const config = {
-  // Temporarily disable middleware guard for /yonet routes to avoid conflicts with Firebase auth
   matcher: [],
 };

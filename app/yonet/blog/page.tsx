@@ -33,7 +33,7 @@ export default function AdminBlog() {
   useEffect(() => {
     const fetchPosts = async () => {
       try {
-        const response = await fetch('/api/admin/blog');
+        const response = await fetch('/api/yonet/blog');
         if (response.ok) {
           const blogPosts = await response.json();
           setPosts(blogPosts);
@@ -58,7 +58,7 @@ export default function AdminBlog() {
     setDeleteLoading(id);
 
     try {
-      const response = await fetch(`/api/admin/blog/${id}`, {
+      const response = await fetch(`/api/yonet/blog/${id}`, {
         method: 'DELETE',
       });
 
@@ -92,7 +92,7 @@ export default function AdminBlog() {
     <div className="flex items-center justify-between">
         <div className="flex items-center space-x-4">
             <Link
-                href="/admin"
+                href="/yonet"
                 className="flex items-center text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100 transition-colors"
             >
                 <ArrowLeft className="w-5 h-5 mr-2" />
@@ -106,7 +106,7 @@ export default function AdminBlog() {
           <p className="text-gray-600 dark:text-gray-400">Manage your blog posts and articles</p>
         </div>
         <Link
-          href="/admin/blog/new"
+          href="/yonet/blog/new"
           className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
         >
           <Plus className="h-4 w-4 mr-2" />
@@ -194,7 +194,7 @@ export default function AdminBlog() {
                 Get started by creating your first blog post.
               </p>
               <Link
-                href="/admin/blog/new"
+                href="/yonet/blog/new"
                 className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700"
               >
                 <Plus className="h-4 w-4 mr-2" />
@@ -251,7 +251,7 @@ export default function AdminBlog() {
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                         <div className="flex items-center justify-end space-x-2">
                           <Link
-                            href={`/admin/blog/edit/${post.id}`}
+                            href={`/yonet/blog/edit/${post.id}`}
                             className="text-primary-600 hover:text-primary-900 dark:text-primary-400 dark:hover:text-primary-300"
                             title="Edit post"
                           >

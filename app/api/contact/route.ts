@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { saveContact, deleteContact } from '@/lib/database';
 import nodemailer from 'nodemailer';
 // import { Resend } from 'resend';
 
@@ -55,16 +54,16 @@ export async function POST(request: NextRequest) {
     //     html: message,
     // })
     // Save contact form submission to database
-    const result = await saveContact({
-      name,
-      email,
-      phone,
-      message
-    });
-
-      if (!result) {
-          throw new Error('Failed to save contact form submission');
-      }
+    // const result = await saveContact({
+    //   name,
+    //   email,
+    //   phone,
+    //   message
+    // });
+    //
+    //   if (!result) {
+    //       throw new Error('Failed to save contact form submission');
+    //   }
 
     // Log the successful submission
     // console.log('Contact form submission saved:', {
@@ -99,22 +98,23 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    const result = await deleteContact(parseInt(id));
+    // const result = await deleteContact(parseInt(id));
 
-    if (!result) {
-      return NextResponse.json(
-        { error: 'Contact not found or could not be deleted' },
-        { status: 404 }
-      );
+    // if (!result) {
+    //   return NextResponse.json(
+    //     { error: 'Contact not found or could not be deleted' },
+    //     { status: 404 }
+    //   );
     }
 
-    console.log('Contact deleted:', { id, timestamp: new Date().toISOString() });
-
-    return NextResponse.json(
-      { message: 'Message deleted successfully' },
-      { status: 200 }
-    );
-  } catch (error) {
+  //   console.log('Contact deleted:', { id, timestamp: new Date().toISOString() });
+  //
+  //   return NextResponse.json(
+  //     { message: 'Message deleted successfully' },
+  //     { status: 200 }
+  //   );
+  // }
+  catch (error) {
     console.error('Delete contact error:', error);
     return NextResponse.json(
       { error: 'Failed to delete message. Please try again.' },

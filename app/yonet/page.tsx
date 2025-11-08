@@ -1,4 +1,4 @@
-import { getAllBlogPosts, getAllRepositories, getAllContacts } from '@/lib/database';
+import { getAllBlogPosts, getAllRepositories } from '@/lib/database';
 import { 
   FileText, 
   Code, 
@@ -18,7 +18,6 @@ export const fetchCache = 'force-no-store';
 export default async function AdminDashboard() {
   const blogPosts = await getAllBlogPosts();
   const repositories = await getAllRepositories();
-  const contacts = await getAllContacts();
 
   const stats = [
     {
@@ -26,35 +25,28 @@ export default async function AdminDashboard() {
       value: blogPosts.length,
       icon: FileText,
       color: 'bg-blue-500',
-      href: '/admin/blog'
+      href: '/yonet/blog'
     },
     {
       title: 'Total Repositories',
       value: repositories.length,
       icon: Code,
       color: 'bg-green-500',
-      href: '/admin/repos'
+      href: '/yonet/repos'
     },
-      {
-          title: 'Messages',
-          value: contacts.length,
-          icon: FileText,
-          color: 'bg-blue-500',
-          href: '/admin/messages'
-      },
     {
       title: 'Published Posts',
       value: blogPosts.filter(post => post.published).length,
       icon: Eye,
       color: 'bg-purple-500',
-      href: '/admin/blog'
+      href: '/yonet/blog'
     },
     {
       title: 'Featured Repos',
       value: repositories.filter(repo => repo.featured).length,
       icon: TrendingUp,
       color: 'bg-orange-500',
-      href: '/admin/repos'
+      href: '/yonet/repos'
     }
   ];
 
@@ -63,14 +55,14 @@ export default async function AdminDashboard() {
       title: 'Create Blog Post',
       description: 'Add a new blog post to your portfolio',
       icon: Plus,
-      href: '/admin/blog/new',
+      href: '/yonet/blog/new',
       color: 'bg-blue-500 hover:bg-blue-600'
     },
     {
       title: 'Add Repository',
       description: 'Add a new project to showcase',
       icon: Code,
-      href: '/admin/repos/new',
+      href: '/yonet/repos/new',
       color: 'bg-green-500 hover:bg-green-600'
     }
   ];
@@ -157,7 +149,7 @@ export default async function AdminDashboard() {
               Recent Blog Posts
             </h3>
             <Link
-              href="/admin/blog"
+              href="/yonet/blog"
               className="text-sm text-primary-600 hover:text-primary-700 font-medium"
             >
               View all
@@ -200,7 +192,7 @@ export default async function AdminDashboard() {
               Recent Repositories
             </h3>
             <Link
-              href="/admin/repos"
+              href="/yonet/repos"
               className="text-sm text-primary-600 hover:text-primary-700 font-medium"
             >
               View all

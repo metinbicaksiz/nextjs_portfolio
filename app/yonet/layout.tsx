@@ -3,7 +3,7 @@
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import type { Auth, User } from 'firebase/auth';
 import {
@@ -80,11 +80,10 @@ export default function AdminLayout({
   };
 
   const navItems = [
-    { name: 'Dashboard', href: '/admin', icon: LayoutDashboard },
-    { name: 'Blog Posts', href: '/admin/blog', icon: FileText },
-    { name: 'Repositories', href: '/admin/repos', icon: Code },
-    { name: 'Messages', href: '/admin/messages', icon: Code },
-    { name: 'Settings', href: '/admin/settings', icon: Settings },
+    { name: 'Dashboard', href: '/yonet', icon: LayoutDashboard },
+    { name: 'Blog Posts', href: '/yonet/blog', icon: FileText },
+    { name: 'Repositories', href: '/yonet/repos', icon: Code },
+    { name: 'Settings', href: '/yonet/settings', icon: Settings },
   ];
 
   if (loading) {

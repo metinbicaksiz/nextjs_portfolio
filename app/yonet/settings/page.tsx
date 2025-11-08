@@ -45,7 +45,7 @@ export default function AdminSettings() {
     let mounted = true;
     (async () => {
       try {
-        const res = await fetch('/api/admin/settings', { cache: 'no-store' });
+        const res = await fetch('/api/yonet/settings', { cache: 'no-store' });
         if (!res.ok) return;
         const s = await res.json();
         if (!mounted || !s) return;
@@ -79,7 +79,7 @@ export default function AdminSettings() {
       weekly_digest: notificationSettings.weeklyDigest,
       security_alerts: notificationSettings.securityAlerts,
     };
-    const res = await fetch('/api/admin/settings', {
+    const res = await fetch('/api/yonet/settings', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
@@ -150,7 +150,7 @@ export default function AdminSettings() {
         <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
                 <Link
-                    href="/admin"
+                    href="/yonet"
                     className="flex items-center text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100 transition-colors"
                 >
                     <ArrowLeft className="w-5 h-5 mr-2" />

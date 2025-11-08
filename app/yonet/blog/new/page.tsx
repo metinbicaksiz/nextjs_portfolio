@@ -29,7 +29,7 @@ export default function NewBlogPost() {
     setLoading(true);
 
     try {
-      const response = await fetch('/api/admin/blog', {
+      const response = await fetch('/api/yonet/blog', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -39,7 +39,7 @@ export default function NewBlogPost() {
 
       if (response.ok) {
         toast.success('Blog post created successfully!');
-        router.push('/admin/blog');
+        router.push('/yonet/blog');
       } else {
         const error = await response.json();
         toast.error(error.error || 'Failed to create blog post');
@@ -66,7 +66,7 @@ export default function NewBlogPost() {
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-4">
           <Link
-            href="/admin/blog"
+            href="/yonet/blog"
             className="inline-flex items-center text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
           >
             <ArrowLeft className="h-4 w-4 mr-1" />
@@ -190,7 +190,7 @@ export default function NewBlogPost() {
           <div className="px-4 py-3 bg-gray-50 dark:bg-gray-700 text-right sm:px-6">
             <div className="flex justify-end space-x-3">
               <Link
-                href="/admin/blog"
+                href="/yonet/blog"
                 className="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 shadow-sm text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
               >
                 Cancel
