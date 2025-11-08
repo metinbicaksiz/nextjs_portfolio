@@ -7,18 +7,22 @@ export default withAuth(
   },
   {
     callbacks: {
-      authorized: ({ token }) => {
+      authorized: ({ req, token }) => {
+        const { pathname } = req.nextUrl;
+        // Allow the login page to render without a token to avoid redirect loops
+        if (pathname === '/yonet/login') {
+          return true;
+        }
+        // Require a NextAuth token for other /yonet routes
         return !!token;
       },
     },
     pages: {
-      signIn: '/yonet/login',  // Update this to your login page
+      signIn: '/yonet/login', // Route to the login page
     },
   }
 );
 
 export const config = {
-  matcher: [
-    '/yonet/:path*',
-  ],
+  matcher: ['/yonet/:path*'],
 };
