@@ -3,10 +3,10 @@ import { getBlogPostBySlug } from '@/lib/database';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
 import { format } from 'date-fns';
-import Image from 'next/image';
 import { Calendar, Clock, ArrowLeft, User } from 'lucide-react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
+import ReactMarkdown from 'react-markdown';
 
 // Enhanced typography styles for rich text content with improved readability
 const proseClasses = cn(
@@ -112,22 +112,26 @@ export default async function BlogPostPage({ params }: { params: { slug: string 
             {/* Featured image with enhanced styling */}
             {post.featured_image && (
               <div className="relative w-full aspect-video mb-12 rounded-2xl overflow-hidden shadow-2xl ring-1 ring-gray-200 dark:ring-gray-800">
-                <Image
-                  src={post.featured_image}
-                  alt={post.title}
-                  fill
-                  className="object-cover"
-                  priority
-                  sizes="(max-width: 768px) 100vw, 896px"
-                />
+                  <img
+                      src={post.featured_image}
+                      alt={post.title}
+                      className="object-cover"
+                      sizes="(max-width: 768px) 100vw, 896px"
+                  />
               </div>
             )}
 
             {/* Article content with enhanced container */}
             <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-xl p-8 sm:p-12 lg:p-16 border border-gray-100 dark:border-gray-800">
               <div className={proseClasses}>
-                  <div>The content goes here</div>
-                <div dangerouslySetInnerHTML={{ __html: post.content }} />
+                {(() => {
+                  const content = post.content || '';
+                  const looksLikeHtml = /<\/?[a-z][\s\S]*>/i.test(content);
+                  if (looksLikeHtml) {
+                    return <div dangerouslySetInnerHTML={{ __html: content }} />;
+                  }
+                  return <ReactMarkdown>{content}</ReactMarkdown>;
+                })()}
               </div>
             </div>
 

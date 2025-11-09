@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { Calendar, Clock, ArrowRight } from 'lucide-react';
 import { format } from 'date-fns';
 import { getAllBlogPosts } from '@/lib/database';
+import Image from "next/image";
 
 export default async function BlogPage() {
     const blogPosts = await getAllBlogPosts();
@@ -37,6 +38,7 @@ export default async function BlogPage() {
                           src={post.featured_image}
                           alt={post.title}
                           className="w-full h-full object-cover"
+                          sizes="(max-width: 768px) 100vw, 896px"
                         />
                       </div>
                     )}
