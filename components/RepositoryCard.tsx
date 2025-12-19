@@ -85,7 +85,7 @@ const RepositoryCard = ({
         </div>
 
         {/* Buttons */}
-        <div className="flex gap-3">
+        <div className="flex gap-3 items-end">
           <a
             href={githubUrl}
             target="_blank"
