@@ -1,19 +1,33 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  images: {
-    // domains: ['localhost', 'metin.bicaksiz.com', 'drive.google.com'],
-      remotePatterns: [{
-        protocol: 'http',
-          hostname: 'localhost',
-      },{
-        protocol: 'https',
-          hostname: 'drive.google.com',
-      },{
-        protocol: 'https',
-          hostname: 'metin.bicaksiz.com',
-      }],
+  // Enable Turbopack
+  experimental: {
+    turbo: {
+      // Add any Turbopack-specific configurations here
+    },
+    // Keep webpack for now for compatibility
+    webpackBuildWorker: true,
   },
-  webpack: (config, { isServer, dev }) => {
+  
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'http',
+        hostname: 'localhost',
+      },
+      {
+        protocol: 'https',
+        hostname: 'drive.google.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'metin.bicaksiz.com',
+      }
+    ],
+  },
+  
+  // Webpack configuration (kept for compatibility)
+  webpack: (config, { isServer }) => {
     config.resolve.fallback = { 
       ...config.resolve.fallback,
       fs: false,
@@ -25,7 +39,6 @@ const nextConfig = {
       url: false,
     };
     
-    // Handle undici issues by excluding it from client-side builds
     if (!isServer) {
       config.externals = config.externals || [];
       config.externals.push('undici');
@@ -36,34 +49,39 @@ const nextConfig = {
       };
     }
     
-    // Add rule to handle problematic modules
     config.module.rules.push({
-      test: /node_modules[\/\\]undici[\/\\].*\.js$/,
+      test: /node_modules[\\/]undici[\\/].*\.js$/,
       loader: 'null-loader',
-    });
-    
-    // Exclude problematic modules from being processed
-    config.module.rules.push({
-      test: /node_modules[\/\\](undici|@firebase[\/\\]auth)[\/\\].*\.(js|mjs)$/,
-      type: 'javascript/auto',
-      resolve: {
-        fullySpecified: false,
-      },
     });
     
     return config;
   },
+  
   transpilePackages: ['firebase', '@firebase/auth', '@firebase/firestore'],
-  experimental: {
-    esmExternals: 'loose',
-  },
-  // Skip type checking during build to avoid Firebase issues
+  
   typescript: {
     ignoreBuildErrors: true,
   },
-  eslint: {
-    ignoreDuringBuilds: true,
+  
+  // Handle deprecated middleware warning
+  async headers() {
+    return [
+      {
+        source: '/:path*',
+        headers: [
+          {
+            key: 'x-middleware-request-marker',
+            value: 'true',
+          },
+        ],
+      },
+    ];
   },
+};
+
+// Conditionally apply Turbopack configuration
+if (process.env.TURBOPACK) {
+  delete nextConfig.webpack;
 }
 
-module.exports = nextConfig 
+module.exports = nextConfig;
