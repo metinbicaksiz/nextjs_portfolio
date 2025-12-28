@@ -5,7 +5,9 @@ import { getAllBlogPostsForAdmin, createBlogPost, BlogPost } from '@/lib/databas
 export async function GET() {
   try {
     const posts = await getAllBlogPostsForAdmin();
-    return NextResponse.json(posts);
+    const response = NextResponse.json(posts);
+    response.headers.set('Cache-Control', 's-maxage=3600, stale-while-revalidate');
+    return response;
   } catch (error) {
     console.error('Error fetching blog posts:', error);
     return NextResponse.json(

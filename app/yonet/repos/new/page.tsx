@@ -223,8 +223,7 @@ export default function NewRepository() {
             </div>
           </div>
         </div>
-      </form>
-    </div>
+    </form>
+  </div>
   );
 }
-export const revalidate = 3600; // Revalidate at most every hour

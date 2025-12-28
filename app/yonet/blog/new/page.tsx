@@ -210,5 +210,3 @@ export default function NewBlogPost() {
     </div>
   );
 }
-
-export const revalidate = 3600; // Revalidate at most every hour

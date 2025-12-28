@@ -444,4 +444,3 @@ export default function AdminSettings() {
     </div>
   );
 }
-export const revalidate = 3600; // Revalidate at most every hour
