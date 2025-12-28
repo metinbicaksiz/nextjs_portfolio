@@ -282,3 +282,5 @@ export default function AdminBlog() {
     </div>
   );
 }
+
+export const revalidate = 3600; // Revalidate at most every hour
