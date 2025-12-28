@@ -300,3 +300,4 @@ export default function AdminRepos() {
     </div>
   );
 }
+export const revalidate = 3600; // Revalidate at most every hour

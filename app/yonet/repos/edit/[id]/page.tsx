@@ -287,3 +287,4 @@ export default function EditRepository() {
     </div>
   );
 }
+export const revalidate = 3600; // Revalidate at most every hour
