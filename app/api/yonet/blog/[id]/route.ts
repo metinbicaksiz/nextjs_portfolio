@@ -4,18 +4,19 @@ import { getBlogPostById, updateBlogPost, deleteBlogPost, BlogPost } from '@/lib
 // GET /api/admin/blog/[id] - Get a specific blog post by ID
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const id = parseInt(params.id);
-    if (isNaN(id)) {
+    const { id } = await params;
+    const postId = parseInt(id);
+    if (isNaN(postId)) {
       return NextResponse.json(
         { error: 'Invalid blog post ID' },
         { status: 400 }
       );
     }
 
-    const post = await getBlogPostById(id);
+    const post = await getBlogPostById(postId);
     
     if (!post) {
       return NextResponse.json(
@@ -37,11 +38,12 @@ export async function GET(
 // PUT /api/admin/blog/[id] - Update a blog post
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const id = parseInt(params.id);
-    if (isNaN(id)) {
+    const { id } = await params;
+    const postId = parseInt(id);
+    if (isNaN(postId)) {
       return NextResponse.json(
         { error: 'Invalid blog post ID' },
         { status: 400 }
@@ -73,7 +75,7 @@ export async function PUT(
       published: body.published || false,
     };
 
-    const success = await updateBlogPost(id, updateData);
+    const success = await updateBlogPost(postId, updateData);
     
     if (success) {
       return NextResponse.json(
@@ -98,18 +100,19 @@ export async function PUT(
 // DELETE /api/admin/blog/[id] - Delete a blog post
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const id = parseInt(params.id);
-    if (isNaN(id)) {
+    const { id } = await params;
+    const postId = parseInt(id);
+    if (isNaN(postId)) {
       return NextResponse.json(
         { error: 'Invalid blog post ID' },
         { status: 400 }
       );
     }
 
-    const success = await deleteBlogPost(id);
+    const success = await deleteBlogPost(postId);
     
     if (success) {
       return NextResponse.json(

@@ -1,10 +1,10 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   // Enable Turbopack
+  turbopack: {
+    // Add any Turbopack-specific configurations here
+  },
   experimental: {
-    turbo: {
-      // Add any Turbopack-specific configurations here
-    },
     // Keep webpack for now for compatibility
     webpackBuildWorker: true,
   },

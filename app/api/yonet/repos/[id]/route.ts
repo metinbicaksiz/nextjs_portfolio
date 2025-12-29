@@ -4,18 +4,19 @@ import { getRepositoryById, updateRepository, deleteRepository, Repository } fro
 // GET /api/admin/repos/[id] - Get a specific repository by ID
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const id = parseInt(params.id);
-    if (isNaN(id)) {
+    const { id } = await params;
+    const repoId = parseInt(id);
+    if (isNaN(repoId)) {
       return NextResponse.json(
         { error: 'Invalid repository ID' },
         { status: 400 }
       );
     }
 
-    const repo = await getRepositoryById(id);
+    const repo = await getRepositoryById(repoId);
     
     if (!repo) {
       return NextResponse.json(
@@ -37,11 +38,12 @@ export async function GET(
 // PUT /api/admin/repos/[id] - Update a repository
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const id = parseInt(params.id);
-    if (isNaN(id)) {
+    const { id } = await params;
+    const repoId = parseInt(id);
+    if (isNaN(repoId)) {
       return NextResponse.json(
         { error: 'Invalid repository ID' },
         { status: 400 }
@@ -77,7 +79,7 @@ export async function PUT(
       featured: body.featured || false,
     };
 
-    const success = await updateRepository(id, updateData);
+    const success = await updateRepository(repoId, updateData);
     
     if (success) {
       return NextResponse.json(
@@ -102,18 +104,19 @@ export async function PUT(
 // DELETE /api/admin/repos/[id] - Delete a repository
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const id = parseInt(params.id);
-    if (isNaN(id)) {
+    const { id } = await params;
+    const repoId = parseInt(id);
+    if (isNaN(repoId)) {
       return NextResponse.json(
         { error: 'Invalid repository ID' },
         { status: 400 }
       );
     }
 
-    const success = await deleteRepository(id);
+    const success = await deleteRepository(repoId);
     
     if (success) {
       return NextResponse.json(
